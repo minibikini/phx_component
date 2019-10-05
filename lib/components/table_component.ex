@@ -1,11 +1,14 @@
 defmodule PhxComponent.TableComponent do
+  @moduledoc false
   import Phoenix.HTML.Tag, only: [content_tag: 2, content_tag: 3]
 
   defmodule HeadItem do
+    @moduledoc false
     defstruct value: nil, class: nil
   end
 
   defmodule BodyItem do
+    @moduledoc false
     defstruct key: nil, format: nil, attrs: []
   end
 
