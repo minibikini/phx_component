@@ -3,16 +3,7 @@ defmodule PhxComponent do
   Documentation for PhxComponent.
   """
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> PhxComponent.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  def table(collection, opts) do
+    PhxComponent.TableComponent.render(collection, opts)
   end
 end
