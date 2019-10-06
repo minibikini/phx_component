@@ -3,12 +3,28 @@ defmodule TableComponentTest do
 
   import Phoenix.HTML
 
-  alias PhxComponent.TableComponent
-
   @items [
     %{id: 1, name: "foo"},
     %{id: 2, name: "bar"}
   ]
+
+  defp render(items, opts),
+    do: items |> PhxComponent.TableComponent.render(opts) |> safe_to_string()
+
+  test "table/2" do
+    opts = [body: [:id, :name]]
+
+    html = render(@items, opts)
+
+    assert Floki.find(html, "table thead tr") == [
+             {"tr", [], [{"th", [], ["Id"]}, {"th", [], ["Name"]}]}
+           ]
+
+    assert Floki.find(html, "table tbody tr") == [
+             {"tr", [], [{"td", [], ["1"]}, {"td", [], ["foo"]}]},
+             {"tr", [], [{"td", [], ["2"]}, {"td", [], ["bar"]}]}
+           ]
+  end
 
   describe "link attribute" do
     test "default link function" do
@@ -19,8 +35,10 @@ defmodule TableComponentTest do
         ]
       }
 
-      assert safe_to_string(TableComponent.render(@items, opts)) ==
-               "<table class=\"table \"><thead class=\"thead-dark\"><tr><th>Id</th><th>Name</th></tr></thead><tbody><tr><td>1</td><td><a href=\"/users/1\">foo</a></td></tr><tr><td>2</td><td><a href=\"/users/2\">bar</a></td></tr></tbody></table>"
+      assert @items |> render(opts) |> Floki.find("table tbody tr td a") == [
+               {"a", [{"href", "/users/1"}], ["foo"]},
+               {"a", [{"href", "/users/2"}], ["bar"]}
+             ]
     end
 
     test "custom link function" do
@@ -39,8 +57,10 @@ defmodule TableComponentTest do
         ]
       }
 
-      assert safe_to_string(TableComponent.render(@items, opts)) ==
-               "<table class=\"table \"><thead class=\"thead-dark\"><tr><th>Id</th><th>Name</th></tr></thead><tbody><tr><td>1</td><td><a href=\"http://x.com/u/1\">foo</a></td></tr><tr><td>2</td><td><a href=\"http://x.com/u/2\">bar</a></td></tr></tbody></table>"
+      assert @items |> render(opts) |> Floki.find("table tbody tr td a") == [
+               {"a", [{"href", "http://x.com/u/1"}], ["foo"]},
+               {"a", [{"href", "http://x.com/u/2"}], ["bar"]}
+             ]
     end
 
     test "custom row link function" do
@@ -59,8 +79,10 @@ defmodule TableComponentTest do
         ]
       }
 
-      assert safe_to_string(TableComponent.render(@items, opts)) ==
-               "<table class=\"table \"><thead class=\"thead-dark\"><tr><th>Id</th><th>Name</th></tr></thead><tbody><tr><td>1</td><td><a href=\"http://x.com/u/1\">foo</a></td></tr><tr><td>2</td><td><a href=\"http://x.com/u/2\">bar</a></td></tr></tbody></table>"
+      assert @items |> render(opts) |> Floki.find("table tbody tr td a") == [
+               {"a", [{"href", "http://x.com/u/1"}], ["foo"]},
+               {"a", [{"href", "http://x.com/u/2"}], ["bar"]}
+             ]
     end
 
     test "custom row link function is more important than global custom link" do
@@ -80,8 +102,10 @@ defmodule TableComponentTest do
         ]
       }
 
-      assert safe_to_string(TableComponent.render(@items, opts)) ==
-               "<table class=\"table \"><thead class=\"thead-dark\"><tr><th>Id</th><th>Name</th></tr></thead><tbody><tr><td>1</td><td><a href=\"http://x.com/u/1\">foo</a></td></tr><tr><td>2</td><td><a href=\"http://x.com/u/2\">bar</a></td></tr></tbody></table>"
+      assert @items |> render(opts) |> Floki.find("table tbody tr td a") == [
+               {"a", [{"href", "http://x.com/u/1"}], ["foo"]},
+               {"a", [{"href", "http://x.com/u/2"}], ["bar"]}
+             ]
     end
   end
 end
