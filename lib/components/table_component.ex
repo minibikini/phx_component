@@ -11,7 +11,7 @@ defmodule PhxComponent.TableComponent do
 
   defmodule BodyItem do
     @moduledoc false
-    defstruct key: nil, format: nil, attrs: [], link: nil, link_fun: &Link.link/2
+    defstruct key: nil, format: nil, attrs: [], link: nil, link_fun: &Link.link/2, title: nil
   end
 
   defstruct head: [],
@@ -90,17 +90,16 @@ defmodule PhxComponent.TableComponent do
   defp derive_head_from_body(opts) do
     head =
       Enum.map(opts[:body], fn
+        %{title: title} when not is_nil(title) ->
+          normalize_header_option(%{value: title})
+
         %{key: nil} ->
           normalize_header_option(%{value: nil})
 
         %{key: key} ->
           key
           |> List.last()
-          |> to_string()
-          |> String.split("_")
-          |> Enum.map(&String.capitalize/1)
-          |> Enum.join(" ")
-          |> normalize_header_option()
+          |> to_header_option()
       end)
 
     if Enum.any?(head, fn h -> not is_nil(h.value) end) do
@@ -108,6 +107,28 @@ defmodule PhxComponent.TableComponent do
     else
       opts
     end
+  end
+
+  defp to_header_option(val) do
+    val
+    |> to_string()
+    |> String.split("_")
+    |> Enum.map(&String.capitalize/1)
+    |> Enum.join(" ")
+    |> normalize_header_option()
+  end
+
+  defp thead_from_body(ops) do
+    ops.body
+    |> Enum.map(fn
+      %{title: title} -> title
+      %{key: key} -> to_header_option(key)
+      any -> to_header_option(any)
+    end)
+  end
+
+  defp thead(%{head: nil, body: [_ | _]} = ops) do
+    thead_from_body(ops)
   end
 
   defp thead(%{head: []}), do: ""
