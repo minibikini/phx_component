@@ -108,4 +108,54 @@ defmodule TableComponentTest do
              ]
     end
   end
+
+  describe "column header" do
+    test "disable header" do
+      opts = [head: [], body: [:id, :name]]
+
+      html = render(@items, opts)
+
+      assert Floki.find(html, "table thead") == []
+    end
+
+    test "derive from keys by default" do
+      opts = [body: [:id, :name]]
+
+      html = render(@items, opts)
+
+      assert Floki.find(html, "table thead tr th") == [{"th", [], ["Id"]}, {"th", [], ["Name"]}]
+    end
+
+    test "from head option" do
+      opts = [
+        head: ["ID", "NAME"],
+        body: [:id, :name]
+      ]
+
+      html = render(@items, opts)
+
+      assert Floki.find(html, "table thead tr th") == [{"th", [], ["ID"]}, {"th", [], ["NAME"]}]
+    end
+
+    test "from title attibute" do
+      opts = [
+        body: [:id, %{key: :name, title: "NAME"}]
+      ]
+
+      html = render(@items, opts)
+
+      assert Floki.find(html, "table thead tr th") == [{"th", [], ["Id"]}, {"th", [], ["NAME"]}]
+    end
+
+    test "head is more important than title attibute" do
+      opts = [
+        head: ["ID", "NAME"],
+        body: [:id, %{key: :name, title: "_NAME"}]
+      ]
+
+      html = render(@items, opts)
+
+      assert Floki.find(html, "table thead tr th") == [{"th", [], ["ID"]}, {"th", [], ["NAME"]}]
+    end
+  end
 end
