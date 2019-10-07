@@ -118,19 +118,6 @@ defmodule PhxComponent.TableComponent do
     |> normalize_header_option()
   end
 
-  defp thead_from_body(ops) do
-    ops.body
-    |> Enum.map(fn
-      %{title: title} -> title
-      %{key: key} -> to_header_option(key)
-      any -> to_header_option(any)
-    end)
-  end
-
-  defp thead(%{head: nil, body: [_ | _]} = ops) do
-    thead_from_body(ops)
-  end
-
   defp thead(%{head: []}), do: ""
 
   defp thead(%{head: items, thead: attrs}) do
