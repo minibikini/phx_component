@@ -126,8 +126,14 @@ defmodule PhxComponent.TableCardComponent do
 
   defp attrs(attr, _field_value, _item, _column), do: attr
 
-  defp get_value(map, [key | tail]) do
+  defp get_value(map, [key | tail]) when is_map(map) do
     get_value(Map.get(map, key), tail)
+  end
+
+  defp get_value(nil, _), do: nil
+
+  defp get_value(list, [idx | tail]) when is_list(list) do
+    get_value(Enum.at(list, idx), tail)
   end
 
   defp get_value(value, []), do: value
