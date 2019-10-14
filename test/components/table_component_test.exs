@@ -118,6 +118,20 @@ defmodule TableComponentTest do
       assert Floki.find(html, "table thead") == []
     end
 
+    test "empty header for a column when no :key" do
+      opts = [body: [:id, %{class: "x"}]]
+
+      html = render(@items, opts)
+
+      assert Floki.find(html, "table thead tr th") == [{"th", [], ["Id"]}, {"th", [], []}]
+
+      opts = [body: [%{class: "x"}]]
+
+      html = render(@items, opts)
+
+      assert Floki.find(html, "table thead") == []
+    end
+
     test "derive from keys by default" do
       opts = [body: [:id, :name]]
 
@@ -156,6 +170,114 @@ defmodule TableComponentTest do
       html = render(@items, opts)
 
       assert Floki.find(html, "table thead tr th") == [{"th", [], ["ID"]}, {"th", [], ["NAME"]}]
+    end
+  end
+
+  describe "resource keys" do
+    test "can be string/atom in resource list " do
+      opts = [
+        body: [:id]
+      ]
+
+      html = render(@items, opts)
+
+      assert Floki.find(html, "table tbody tr") == [
+               {"tr", [], [{"td", [], ["1"]}]},
+               {"tr", [], [{"td", [], ["2"]}]}
+             ]
+    end
+
+    test "can be value of map in resource list " do
+      opts = [
+        body: [%{key: :id}]
+      ]
+
+      html = render(@items, opts)
+
+      assert Floki.find(html, "table tbody tr") == [
+               {"tr", [], [{"td", [], ["1"]}]},
+               {"tr", [], [{"td", [], ["2"]}]}
+             ]
+    end
+
+    test "can be nested" do
+      items = [
+        %{
+          "one" => %{two: %{"three" => "four"}},
+          a: %{
+            b: %{c: "ddd"}
+          }
+        }
+      ]
+
+      opts = [
+        body: [["one", :two, "three"], %{key: [:a, :b, :c]}]
+      ]
+
+      html = render(items, opts)
+
+      assert Floki.find(html, "table tbody tr td") == [{"td", [], ["four"]}, {"td", [], ["ddd"]}]
+    end
+  end
+
+  describe "format attribute" do
+    result =
+      [
+        fn value -> value * 2 end,
+        fn _value, item -> item.name end,
+        fn _value, _item, column -> column.key |> hd() |> to_string() end
+      ]
+      |> Enum.map(fn format ->
+        opts = [body: [%{key: :id, format: format}]]
+        # render(@items, opts)
+        @items
+        |> PhxComponent.TableComponent.render(opts)
+        |> safe_to_string()
+        |> Floki.find("table tbody tr td")
+      end)
+
+    assert result == [
+             [{"td", [], ["2"]}, {"td", [], ["4"]}],
+             [{"td", [], ["foo"]}, {"td", [], ["bar"]}],
+             [{"td", [], ["id"]}, {"td", [], ["id"]}]
+           ]
+  end
+
+  describe "custom attributes" do
+    test "attributes" do
+      opts = [
+        body: [%{key: :name, class: "cls", data_x: "y", cofe: "fe"}]
+      ]
+
+      html = render(@items, opts)
+
+      assert Floki.find(html, "table tbody tr td") == [
+               {"td", [{"class", "cls"}, {"cofe", "fe"}, {"data-x", "y"}], ["foo"]},
+               {"td", [{"class", "cls"}, {"cofe", "fe"}, {"data-x", "y"}], ["bar"]}
+             ]
+    end
+
+    test "attribute formatter" do
+      result =
+        [
+          fn _value -> "one" end,
+          fn _value, _item -> "two" end,
+          fn _value, _item, _column -> "three" end
+        ]
+        |> Enum.map(fn format ->
+          opts = [body: [%{key: :id, class: format}]]
+          # render(@items, opts)
+          @items
+          |> PhxComponent.TableComponent.render(opts)
+          |> safe_to_string()
+          |> Floki.find("table tbody tr td")
+        end)
+
+      assert result == [
+               [{"td", [{"class", "one"}], ["1"]}, {"td", [{"class", "one"}], ["2"]}],
+               [{"td", [{"class", "two"}], ["1"]}, {"td", [{"class", "two"}], ["2"]}],
+               [{"td", [{"class", "three"}], ["1"]}, {"td", [{"class", "three"}], ["2"]}]
+             ]
     end
   end
 end
