@@ -12,7 +12,7 @@ defmodule TableComponentTest do
     do: items |> PhxComponent.TableComponent.render(opts) |> safe_to_string()
 
   test "table/2" do
-    opts = [body: [:id, :name]]
+    opts = [fields: [:id, :name]]
 
     html = render(@items, opts)
 
@@ -29,9 +29,9 @@ defmodule TableComponentTest do
   describe "link attribute" do
     test "default link function" do
       opts = %{
-        body: [
+        fields: [
           :id,
-          %{key: :name, link: fn _value, item, _column -> [to: "/users/#{item.id}"] end}
+          %{key: :name, link: fn _value, item, _field -> [to: "/users/#{item.id}"] end}
         ]
       }
 
@@ -48,11 +48,11 @@ defmodule TableComponentTest do
 
       opts = %{
         link_fun: link_fun,
-        body: [
+        fields: [
           :id,
           %{
             key: :name,
-            link: fn _value, item, _column -> [to: "/u/#{item.id}"] end
+            link: fn _value, item, _field -> [to: "/u/#{item.id}"] end
           }
         ]
       }
@@ -69,12 +69,12 @@ defmodule TableComponentTest do
       end
 
       opts = %{
-        body: [
+        fields: [
           :id,
           %{
             key: :name,
             link_fun: link_fun,
-            link: fn _value, item, _column -> [to: "/u/#{item.id}"] end
+            link: fn _value, item, _field -> [to: "/u/#{item.id}"] end
           }
         ]
       }
@@ -92,12 +92,12 @@ defmodule TableComponentTest do
 
       opts = %{
         link_fun: fn _value, _attrs -> "42" end,
-        body: [
+        fields: [
           :id,
           %{
             key: :name,
             link_fun: link_fun,
-            link: fn _value, item, _column -> [to: "/u/#{item.id}"] end
+            link: fn _value, item, _field -> [to: "/u/#{item.id}"] end
           }
         ]
       }
@@ -109,23 +109,23 @@ defmodule TableComponentTest do
     end
   end
 
-  describe "column header" do
+  describe "table header" do
     test "disable header" do
-      opts = [head: [], body: [:id, :name]]
+      opts = [head: [], fields: [:id, :name]]
 
       html = render(@items, opts)
 
       assert Floki.find(html, "table thead") == []
     end
 
-    test "empty header for a column when no :key" do
-      opts = [body: [:id, %{class: "x"}]]
+    test "empty header for a field when no :key" do
+      opts = [fields: [:id, %{class: "x"}]]
 
       html = render(@items, opts)
 
       assert Floki.find(html, "table thead tr th") == [{"th", [], ["Id"]}, {"th", [], []}]
 
-      opts = [body: [%{class: "x"}]]
+      opts = [fields: [%{class: "x"}]]
 
       html = render(@items, opts)
 
@@ -133,7 +133,7 @@ defmodule TableComponentTest do
     end
 
     test "derive from keys by default" do
-      opts = [body: [:id, :name]]
+      opts = [fields: [:id, :name]]
 
       html = render(@items, opts)
 
@@ -143,7 +143,7 @@ defmodule TableComponentTest do
     test "from head option" do
       opts = [
         head: ["ID", "NAME"],
-        body: [:id, :name]
+        fields: [:id, :name]
       ]
 
       html = render(@items, opts)
@@ -153,7 +153,7 @@ defmodule TableComponentTest do
 
     test "from title attibute" do
       opts = [
-        body: [:id, %{key: :name, title: "NAME"}]
+        fields: [:id, %{key: :name, title: "NAME"}]
       ]
 
       html = render(@items, opts)
@@ -164,7 +164,7 @@ defmodule TableComponentTest do
     test "head is more important than title attibute" do
       opts = [
         head: ["ID", "NAME"],
-        body: [:id, %{key: :name, title: "_NAME"}]
+        fields: [:id, %{key: :name, title: "_NAME"}]
       ]
 
       html = render(@items, opts)
@@ -176,7 +176,7 @@ defmodule TableComponentTest do
   describe "resource keys" do
     test "can be string/atom in resource list " do
       opts = [
-        body: [:id]
+        fields: [:id]
       ]
 
       html = render(@items, opts)
@@ -189,7 +189,7 @@ defmodule TableComponentTest do
 
     test "can be value of map in resource list " do
       opts = [
-        body: [%{key: :id}]
+        fields: [%{key: :id}]
       ]
 
       html = render(@items, opts)
@@ -211,7 +211,7 @@ defmodule TableComponentTest do
       ]
 
       opts = [
-        body: [["one", :two, "three"], %{key: [:a, :b, :c]}]
+        fields: [["one", :two, "three"], %{key: [:a, :b, :c]}]
       ]
 
       html = render(items, opts)
@@ -225,10 +225,10 @@ defmodule TableComponentTest do
       [
         fn value -> value * 2 end,
         fn _value, item -> item.name end,
-        fn _value, _item, column -> column.key |> hd() |> to_string() end
+        fn _value, _item, field -> field.key |> hd() |> to_string() end
       ]
       |> Enum.map(fn format ->
-        opts = [body: [%{key: :id, format: format}]]
+        opts = [fields: [%{key: :id, format: format}]]
         # render(@items, opts)
         @items
         |> PhxComponent.TableComponent.render(opts)
@@ -246,7 +246,7 @@ defmodule TableComponentTest do
   describe "custom attributes" do
     test "attributes" do
       opts = [
-        body: [%{key: :name, class: "cls", data_x: "y", cofe: "fe"}]
+        fields: [%{key: :name, class: "cls", data_x: "y", cofe: "fe"}]
       ]
 
       html = render(@items, opts)
@@ -262,10 +262,10 @@ defmodule TableComponentTest do
         [
           fn _value -> "one" end,
           fn _value, _item -> "two" end,
-          fn _value, _item, _column -> "three" end
+          fn _value, _item, _field -> "three" end
         ]
         |> Enum.map(fn format ->
-          opts = [body: [%{key: :id, class: format}]]
+          opts = [fields: [%{key: :id, class: format}]]
           # render(@items, opts)
           @items
           |> PhxComponent.TableComponent.render(opts)
