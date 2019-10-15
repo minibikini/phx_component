@@ -35,7 +35,7 @@ defmodule PhxComponent.TableCardComponent do
   defp render_tr(item, field) do
     content_tag :tr do
       [
-        content_tag(:th, get_title(field)),
+        content_tag(:th, get_title(field), style: "white-space:nowrap;"),
         render_td(field, item)
       ]
     end
@@ -43,6 +43,8 @@ defmodule PhxComponent.TableCardComponent do
 
   defp render_td(field, item) do
     value = item |> get_value(field.key) |> format(field, item) |> maybe_link(field, item)
-    content_tag(:td, value, attrs(value, item, field))
+    attrs = attrs(value, item, field) ++ [style: "width:100%;"]
+
+    content_tag(:td, value, attrs)
   end
 end
