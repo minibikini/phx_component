@@ -64,7 +64,8 @@ defmodule PhxComponent.TableComponent do
   end
 
   defp render_td(field, item) do
-    value = item |> get_value(field.key) |> format(field, item) |> maybe_link(field, item)
-    content_tag(:td, value, attrs(value, item, field))
+    value = item |> get_value(field.key)
+    value_formatted = value |> format(field, item) |> maybe_link(field, item)
+    content_tag(:td, value_formatted, attrs(value, item, field))
   end
 end
